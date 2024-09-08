@@ -1,0 +1,14 @@
+services:
+  bitcoin:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: bitcoin-node
+    volumes:
+      - ./bitcoindata:/home/bitcoin/.bitcoin
+    ports:
+      - "9333:9333"
+    restart: always
+    environment:
+      - BITCOIN_RPCUSER=yourusername
+      - BITCOIN_RPCPASSWORD=yourpassword
