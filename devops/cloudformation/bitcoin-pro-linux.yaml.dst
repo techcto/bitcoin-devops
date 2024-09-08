@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 
 Description: >
 
-  Litecoin Pro {SOLODEV_RELEASE} on AWS
+  Bitcoin Pro {SOLODEV_RELEASE} on AWS
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -21,7 +21,7 @@ Metadata:
           - AmiAlias
       -
         Label:
-          default: "Litecoin Settings"
+          default: "Bitcoin Settings"
         Parameters:
           - AdminUser
           - AdminPassword
@@ -105,7 +105,7 @@ Parameters:
   HostVolumeSize:
     Description: Size in GB of root volume
     Type: String
-    Default: "128"
+    Default: "1024"
     AllowedValues:
       - "64"
       - "128"
@@ -143,7 +143,7 @@ Parameters:
 
 Conditions:
 
-  CustomAMI: !Not [!Equals [ !Ref CustomAMI, "{CustomAMI}" ]] 
+  CustomAMI: !Equals [ !Ref CustomAMI, "{CustomAMI}" ]
 
 Resources:
 
@@ -173,7 +173,7 @@ Resources:
           ToPort: 443
           CidrIp: 0.0.0.0/0
 
-  LitecoinInstanceRole:
+  BitcoinInstanceRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
@@ -185,35 +185,41 @@ Resources:
                 - "ec2.amazonaws.com"
             Action:
               - "sts:AssumeRole"
-          - Sid: ListObjectsInBucket
-            Effect: Allow
-            Action:
-              - s3:ListBucket
-            Resource: !Join 
-              - ''
-              - - 'arn:aws:s3:::'
-                - !Ref S3Bucket
-          - Sid: AllObjectActions
-            Effect: Allow
-            Action:
-              - s3:GetObject
-              - s3:PutObject
-              - s3:DeleteObject
-            Resource: !Join 
-              - ''
-              - - 'arn:aws:s3:::'
-                - !Ref S3Bucket
-                - /*
+      Path: /
+      Policies:
+        - 
+          PolicyName: NodePolicy
+          PolicyDocument:
+              Statement:
+                  - Sid: ListObjectsInBucket
+                    Effect: Allow
+                    Action:
+                      - s3:ListBucket
+                    Resource: !Join 
+                      - ''
+                      - - 'arn:aws:s3:::'
+                        - !Ref S3Bucket
+                  - Sid: AllObjectActions
+                    Effect: Allow
+                    Action:
+                      - s3:GetObject
+                      - s3:PutObject
+                      - s3:DeleteObject
+                    Resource: !Join 
+                      - ''
+                      - - 'arn:aws:s3:::'
+                        - !Ref S3Bucket
+                        - /*
       Path: /
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 
-  LitecoinInstanceProfile:
+  BitcoinInstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
       Path: /
       Roles:
-        - !Ref LitecoinInstanceRole
+        - !Ref BitcoinInstanceRole
 
   WebServerInstance:
     Type: "AWS::EC2::Instance"
@@ -244,7 +250,7 @@ Resources:
             - !Ref WebServerSecurityGroup
           SubnetId: !Ref PublicSubnet1ID
       BlockDeviceMappings:
-        - DeviceName: /dev/xvda
+        - DeviceName: /dev/sda1
           Ebs:
             VolumeSize: !Ref HostVolumeSize
             DeleteOnTermination: "false"
@@ -253,16 +259,16 @@ Resources:
           Value: !Join
             - " - "
             - - !Ref "AWS::StackName"
-              - Litecoin
-      IamInstanceProfile: !Ref LitecoinInstanceProfile
+              - Bitcoin
+      IamInstanceProfile: !Ref BitcoinInstanceProfile
 
 Outputs:
   AdminUrl:
     Description: Dedicated DNS.  Point your DNS to this name.
     Value: !GetAtt WebServerInstance.PublicDnsName
   AdminUsername:
-    Description: Litecoin admin username.
+    Description: Bitcoin admin username.
     Value: !Ref AdminUser
   AdminPassword:
-    Description: Litecoin password.
+    Description: Bitcoin password.
     Value: !Ref AdminPassword

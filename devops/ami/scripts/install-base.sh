@@ -1,6 +1,8 @@
 apt-get update
-apt-get install ca-certificates curl unzip python-is-python3 open-iscsi cmake -y
+apt-get install ca-certificates curl unzip python-is-python3 open-iscsi cmake snapd vim -y
 systemctl enable --now iscsid
+
+snap install amazon-ssm-agent --classic
 
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
