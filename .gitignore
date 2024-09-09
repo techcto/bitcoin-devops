@@ -1,3 +1,4 @@
 dist/*
 devops/ami/files/*
+devops/ami/bitcoin-manifest.*
 *.zip
